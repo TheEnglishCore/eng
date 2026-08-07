@@ -1,0 +1,14 @@
+# 02 - Arithmetic
+# Spelled-out operators.
+
+Let a be 20.
+Let b be 5.
+Let sum be a plus b.
+Let product be a multiplied by b.
+Let quotient be a divided by b.
+Let remainder be a modulo b.
+
+Print sum.
+Print product.
+Print quotient.
+Print remainder.

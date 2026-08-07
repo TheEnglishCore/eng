@@ -1,0 +1,7 @@
+# 18 - Module math helpers (main file)
+# Imports the math_helpers module and uses it.
+
+Import math_helpers.
+
+Print Run double with 5.
+Print Run double with 12.

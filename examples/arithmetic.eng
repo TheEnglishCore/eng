@@ -1,0 +1,9 @@
+# Arithmetic test
+
+Let first be 20.
+
+Let second be 5.
+
+Let answer be first divided by second.
+
+Print answer.

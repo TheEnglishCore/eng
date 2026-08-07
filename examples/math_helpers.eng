@@ -1,0 +1,6 @@
+# math_helpers.engling - module providing math functions.
+# Top-level function definitions are exported automatically.
+
+Define a function called double that takes x and returns x multiplied by 2.
+
+Define a function called triple that takes x and returns x multiplied by 3.

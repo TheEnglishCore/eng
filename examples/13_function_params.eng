@@ -1,0 +1,7 @@
+# 13 - Function with multiple parameters
+# Multi-param call.
+
+Define a function called add that takes a and b and returns a plus b.
+
+Print Run add with 3 and 4.
+Print Run add with 10 and 20.

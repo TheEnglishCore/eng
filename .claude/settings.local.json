@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check *)",
+      "Bash(where cargo *)",
+      "Read(//c/Users/neil.NathanielPazon/.cargo/**)",
+      "Read(//c/Users/neil/.cargo/**)",
+      "Bash(where rustc *)",
+      "Read(//c/Users/neil.NathanielPazon/**)",
+      "Read(//c/Users/neil/**)",
+      "Bash(cargo build *)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "Bash(chmod +x install.sh uninstall.sh)",
+      "Bash(sh -n install.sh)",
+      "Bash(sh -n uninstall.sh)"
+    ]
+  }
+}

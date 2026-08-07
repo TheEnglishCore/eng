@@ -1,0 +1,8 @@
+# 07 - Simple if
+# A single-branch conditional.
+
+Let x be 10.
+
+If x is greater than 5, then
+  Print "Big".
+End.

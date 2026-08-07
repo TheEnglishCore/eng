@@ -1,0 +1,7 @@
+# 19 - Import all
+# Imports the entire math_helpers namespace.
+
+Import math_helpers.
+
+Print Run double with 4.
+Print Run triple with 4.

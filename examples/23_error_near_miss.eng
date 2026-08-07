@@ -1,0 +1,6 @@
+# 23 - Diagnostic test
+# This program is *intentionally* invalid.
+# It is used by the integration test suite to confirm the parser reports
+# a clear error rather than panicking silently.
+
+Let x be.

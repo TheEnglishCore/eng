@@ -1,0 +1,13 @@
+# 06 - Logic
+# `and` / `or`.
+
+Let age be 25.
+Let has_id be true.
+
+If age is greater than 18 and has_id, then
+  Print "Allowed".
+End.
+
+If age is less than 18 or has_id is equal to false, then
+  Print "Not allowed".
+End.

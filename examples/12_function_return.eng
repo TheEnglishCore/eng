@@ -1,0 +1,7 @@
+# 12 - Function with return value
+# `returns` expression form.
+
+Define a function called square that takes x and returns x multiplied by x.
+
+Print Run square with 5.
+Print Run square with 7.

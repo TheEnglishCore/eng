@@ -1,0 +1,7 @@
+# 03 - String concatenation
+# Strings concat via `plus`.
+
+Let part1 be "Hello, ".
+Let part2 be "world.".
+Let message be part1 plus part2.
+Print message.

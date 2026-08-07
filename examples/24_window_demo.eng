@@ -1,0 +1,7 @@
+# 24 - Window demo
+# A titled window with a static label (no event handlers).
+# Requires `cargo build --features ui` and `--ui` flag.
+
+Make a window called app titled "Demo".
+
+Add a label to app labeled "Welcome to Engling".

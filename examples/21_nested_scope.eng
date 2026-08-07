@@ -1,0 +1,11 @@
+# 21 - Nested scope
+# Variables declared in a block do not leak out.
+
+Let x be 10.
+
+If x is greater than 0, then
+  Let inner be 99.
+  Print inner.
+End.
+
+Print x.

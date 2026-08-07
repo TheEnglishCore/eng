@@ -1,0 +1,21 @@
+# 22 - FizzBuzz
+# Combined control flow: if/otherwise inside a repeat loop.
+
+Let i be 1.
+
+While i is less than or equal to 15
+  If i modulo 3 is equal to 0 and i modulo 5 is equal to 0, then
+    Print "FizzBuzz".
+  Otherwise
+    If i modulo 3 is equal to 0, then
+      Print "Fizz".
+    Otherwise
+      If i modulo 5 is equal to 0, then
+        Print "Buzz".
+      Otherwise
+        Print i.
+      End.
+    End.
+  End.
+  Set i to i plus 1.
+End.

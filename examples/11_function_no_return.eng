@@ -1,0 +1,9 @@
+# 11 - Function with no return value
+# Side-effect function.
+
+Define a function called greet that takes name
+  Print "Hello, ".
+  Print name.
+End.
+
+Run greet with "world".

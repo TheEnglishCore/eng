@@ -1,0 +1,11 @@
+# 15 - List add
+# Append multiple items.
+
+Make a list called queue.
+Add 1 to queue.
+Add 2 to queue.
+Add 3 to queue.
+Add 4 to queue.
+Add 5 to queue.
+
+Print Get the fifth item of queue.

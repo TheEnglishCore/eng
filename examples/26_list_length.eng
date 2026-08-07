@@ -1,0 +1,19 @@
+# 26 - List length
+# Use `the length of X` to query how many items are in a list.
+
+Make a list called fruits.
+Add "apple" to fruits.
+Add "banana" to fruits.
+Add "cherry" to fruits.
+
+Print the length of fruits.
+
+# Build a list dynamically, then check its length.
+Make a list called squares.
+Let n be 0.
+While n is less than 5
+    Add n multiplied by n to squares.
+    Set n to n plus 1.
+End.
+
+Print the length of squares.

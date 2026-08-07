@@ -1,0 +1,5 @@
+# 01 - Hello world
+# Variables + print.
+
+Let greeting be "Hello, world.".
+Print greeting.

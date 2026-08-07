@@ -1,0 +1,10 @@
+# 08 - If/otherwise
+# Two branches.
+
+Let score be 75.
+
+If score is greater than or equal to 60, then
+  Print "Pass".
+Otherwise
+  Print "Fail".
+End.

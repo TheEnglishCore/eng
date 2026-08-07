@@ -1,0 +1,9 @@
+# 10 - While
+# Conditional loop.
+
+Let count be 0.
+
+While count is less than 5
+  Print count.
+  Set count to count plus 1.
+End.

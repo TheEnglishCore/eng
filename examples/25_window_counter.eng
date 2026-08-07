@@ -1,0 +1,15 @@
+# 25 - Window counter
+# A button click updates a label. Requires `--features ui` and `--ui`.
+
+Make a window called app titled "Counter".
+Add a label to app labeled "Count: 0".
+Add a button to app labeled "Increment".
+
+Define a function called increment that takes nothing
+  Set count to count plus 1.
+  Set the label text of "Count: 0" to "Count: " plus count.
+End.
+
+Let count be 0.
+
+When the Increment button is clicked, run increment.

@@ -1,0 +1,6 @@
+# 09 - Repeat
+# Fixed loop count.
+
+Repeat 5 times
+  Print "Engling".
+End.

@@ -1,0 +1,11 @@
+# 14 - List creation
+# Make an empty list.
+
+Make a list called scores.
+Add 10 to scores.
+Add 20 to scores.
+Add 30 to scores.
+
+Print Get the first item of scores.
+Print Get the second item of scores.
+Print Get the third item of scores.

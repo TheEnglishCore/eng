@@ -1,0 +1,11 @@
+# 16 - List index by ordinal
+# English ordinal indexing.
+
+Make a list called colors.
+Add "red" to colors.
+Add "green" to colors.
+Add "blue" to colors.
+
+Print Get the first item of colors.
+Print Get the second item of colors.
+Print Get the third item of colors.
