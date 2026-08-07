@@ -1,4 +1,7 @@
 input: docs
+output: .retype
+
+url: https://theenglishcore.github.io/eng/
 
 branding:
   title: ENG
