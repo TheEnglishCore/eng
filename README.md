@@ -48,6 +48,40 @@ Print Run square with 5.
 See [`docs/GRAMMAR.md`](docs/GRAMMAR.md) for the full grammar and
 [`docs/DESIGN.md`](docs/DESIGN.md) for design rationale.
 
+## Package manager
+
+Engling V1 ships with a small, deliberate package manager that
+supports both **official** and **community** packages.
+
+```bash
+# Official packages
+eng install colors
+
+# Community packages (GitHub or direct archive URL)
+eng install https://github.com/Alice/colors
+eng install https://example.com/colors-1.0.0.engpkg
+
+# Inspect / manage
+eng list
+eng remove colors
+eng search color
+eng update
+```
+
+The official registry defaults to:
+
+```text
+https://raw.githubusercontent.com/TheEnglishCore/eng-packages/main/registry.json
+```
+
+Override with `ENGLING_REGISTRY=<url>`. Packages land under
+`~/.engling/packages/` on Linux, macOS, and Termux. Override with
+`ENGLING_PACKAGES_DIR`.
+
+See [`docs/PACKAGES.md`](docs/PACKAGES.md) for the full spec — manifest
+format, security guarantees, dependency handling, module resolution
+order, and how to publish your own community package.
+
 ## Layout
 
 ```
@@ -59,12 +93,16 @@ src/
   bytecode.rs, compiler.rs
   value.rs, scope.rs, vm.rs
   runtime.rs, repl.rs, cli.rs
+  package/             # V1 package manager
+    mod.rs, source.rs, registry.rs, manifest.rs, version.rs,
+    fetcher.rs, installer.rs, store.rs, commands.rs
   ui/                  # gated behind --features ui
 docs/
-  GRAMMAR.md, DESIGN.md
+  GRAMMAR.md, DESIGN.md, PACKAGES.md
 examples/              # 26 example programs (24 non-UI + 2 UI)
 tests/
   integration_test.rs  # runs every fixture + edge cases
+  package_manager.rs   # exercises the package manager end-to-end
 ```
 
 ## Building the optional UI feature

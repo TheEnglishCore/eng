@@ -12,6 +12,7 @@ pub enum Instruction {
     Modulo,
     Print,
     Pop,
+    Input(String),
     Equal,
     NotEqual,
     Greater,

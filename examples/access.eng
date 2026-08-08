@@ -1,0 +1,7 @@
+Let user be a.
+
+If user is equal to a, then
+   Print "Access Granted".
+   Otherwise
+   Print "Access Denied".
+   End.

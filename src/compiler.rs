@@ -62,6 +62,10 @@ impl Compiler {
                 self.expression(expression);
                 self.chunk.emit(Instruction::Print);
             }
+            Statement::Input { prompt, variable } => {
+                self.expression(prompt);
+                self.chunk.emit(Instruction::Input(variable));
+            }
             Statement::If {
                 condition,
                 then_block,
@@ -87,14 +91,14 @@ impl Compiler {
                 }
             }
             Statement::Repeat { count, body } => {
-                let counter_name = format!(
-                    "__repeat_{}",
-                    REPEAT_COUNTER.fetch_add(1, Ordering::SeqCst)
-                );
+                let counter_name =
+                    format!("__repeat_{}", REPEAT_COUNTER.fetch_add(1, Ordering::SeqCst));
                 self.expression(count);
-                self.chunk.emit(Instruction::StoreVariable(counter_name.clone()));
+                self.chunk
+                    .emit(Instruction::StoreVariable(counter_name.clone()));
                 let loop_start = self.chunk.code.len();
-                self.chunk.emit(Instruction::LoadVariable(counter_name.clone()));
+                self.chunk
+                    .emit(Instruction::LoadVariable(counter_name.clone()));
                 let zero_idx = self.chunk.add_constant(Value::Number(0.0));
                 self.chunk.emit(Instruction::LoadConstant(zero_idx));
                 self.chunk.emit(Instruction::Greater);
@@ -102,7 +106,8 @@ impl Compiler {
                 for stmt in body {
                     self.statement(stmt);
                 }
-                self.chunk.emit(Instruction::LoadVariable(counter_name.clone()));
+                self.chunk
+                    .emit(Instruction::LoadVariable(counter_name.clone()));
                 let one_idx = self.chunk.add_constant(Value::Number(1.0));
                 self.chunk.emit(Instruction::LoadConstant(one_idx));
                 self.chunk.emit(Instruction::Subtract);
@@ -160,7 +165,9 @@ impl Compiler {
                 self.chunk.emit(Instruction::LoadConstant(idx));
                 self.chunk.emit(Instruction::ListSet(name));
             }
-            Statement::Import { .. } | Statement::ImportFrom { .. } | Statement::ModuleDecl { .. } => {
+            Statement::Import { .. }
+            | Statement::ImportFrom { .. }
+            | Statement::ModuleDecl { .. } => {
                 // Handled at runtime, not compiled
             }
             #[cfg(feature = "ui")]
@@ -194,7 +201,11 @@ impl Compiler {
             Expression::Variable(name) => {
                 self.chunk.emit(Instruction::LoadVariable(name));
             }
-            Expression::Binary { left, operator, right } => {
+            Expression::Binary {
+                left,
+                operator,
+                right,
+            } => {
                 self.expression(*left);
                 self.expression(*right);
                 let instruction = match operator {

@@ -1,0 +1,8 @@
+# 27 - Input
+# Reads two lines from stdin and uses them in computations.
+
+Ask "Username: " and put it in name.
+Print "Hello, " plus name plus "!".
+
+Ask "Favorite color: " and put it in color.
+Print name plus " likes " plus color plus ".".

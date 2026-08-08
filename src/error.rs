@@ -24,7 +24,10 @@ pub enum EnglingError {
     },
 
     #[error("Parse error at line {line}, column {column}: {message}")]
-    #[diagnostic(code(engling::parse), help("Review the sentence template in docs/GRAMMAR.md."))]
+    #[diagnostic(
+        code(engling::parse),
+        help("Review the sentence template in docs/GRAMMAR.md.")
+    )]
     Parse {
         line: usize,
         column: usize,
@@ -42,6 +45,10 @@ pub enum EnglingError {
     #[error("Module error: {0}")]
     #[diagnostic(code(engling::module))]
     Module(String),
+
+    #[error("Package error: {0}")]
+    #[diagnostic(code(engling::package))]
+    Package(String),
 }
 
 pub type Result<T> = std::result::Result<T, EnglingError>;
@@ -98,15 +105,53 @@ impl EnglingError {
     pub fn module(message: impl Into<String>) -> Self {
         EnglingError::Module(message.into())
     }
+
+    pub fn package(message: impl Into<String>) -> Self {
+        EnglingError::Package(message.into())
+    }
 }
 
 pub fn suggest_keyword(word: &str) -> Option<&'static str> {
     const KEYWORDS: &[&str] = &[
-        "let", "set", "make", "be", "to", "print", "true", "false", "if", "otherwise",
-        "end", "repeat", "times", "while", "then", "define", "function", "called",
-        "that", "takes", "returns", "run", "with", "plus", "minus", "and", "or",
-        "import", "from", "use", "add", "get", "the", "item", "of", "length", "first",
-        "second", "third",
+        "let",
+        "set",
+        "make",
+        "be",
+        "to",
+        "print",
+        "true",
+        "false",
+        "if",
+        "otherwise",
+        "end",
+        "repeat",
+        "times",
+        "while",
+        "then",
+        "define",
+        "function",
+        "called",
+        "that",
+        "takes",
+        "returns",
+        "run",
+        "with",
+        "plus",
+        "minus",
+        "and",
+        "or",
+        "import",
+        "from",
+        "use",
+        "add",
+        "get",
+        "the",
+        "item",
+        "of",
+        "length",
+        "first",
+        "second",
+        "third",
     ];
     let w = word.to_lowercase();
     // Only suggest when the word is at least 4 chars long. This prevents

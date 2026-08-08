@@ -1,4 +1,4 @@
-use crate::error::{EnglingError, Result, lex_error_at, suggest_keyword};
+use crate::error::{lex_error_at, suggest_keyword, EnglingError, Result};
 use crate::token::{Token, TokenKind};
 
 pub struct Lexer {
@@ -45,19 +45,43 @@ impl Lexer {
         let byte_offset = self.byte_offset;
 
         if self.position >= self.chars.len() {
-            return Ok(Token::with_span(TokenKind::EOF, line, column, byte_offset, 0));
+            return Ok(Token::with_span(
+                TokenKind::EOF,
+                line,
+                column,
+                byte_offset,
+                0,
+            ));
         }
 
         let ch = self.advance();
 
         match ch {
-            '.' => Ok(Token::with_span(TokenKind::Period, line, column, byte_offset, 1)),
-            ',' => Ok(Token::with_span(TokenKind::Comma, line, column, byte_offset, 1)),
+            '.' => Ok(Token::with_span(
+                TokenKind::Period,
+                line,
+                column,
+                byte_offset,
+                1,
+            )),
+            ',' => Ok(Token::with_span(
+                TokenKind::Comma,
+                line,
+                column,
+                byte_offset,
+                1,
+            )),
             '"' => {
                 let start_byte = self.byte_offset;
                 let value = self.read_string()?;
                 let len = self.byte_offset - start_byte - 1; // exclude trailing quote
-                Ok(Token::with_span(TokenKind::String(value), line, column, start_byte, len.max(1)))
+                Ok(Token::with_span(
+                    TokenKind::String(value),
+                    line,
+                    column,
+                    start_byte,
+                    len.max(1),
+                ))
             }
             '#' => {
                 self.skip_comment();
@@ -69,7 +93,13 @@ impl Lexer {
         }
     }
 
-    fn read_word(&mut self, first: char, line: usize, column: usize, byte_offset: usize) -> Result<Token> {
+    fn read_word(
+        &mut self,
+        first: char,
+        line: usize,
+        column: usize,
+        byte_offset: usize,
+    ) -> Result<Token> {
         let mut word = first.to_string();
         let start_byte = byte_offset;
         while let Some(c) = self.peek() {
@@ -89,6 +119,10 @@ impl Lexer {
             "be" => TokenKind::Be,
             "to" => TokenKind::To,
             "print" | "show" | "display" => TokenKind::Print,
+            "ask" => TokenKind::Ask,
+            "put" => TokenKind::Put,
+            "it" => TokenKind::It,
+            "in" => TokenKind::In,
             "true" => TokenKind::True,
             "false" => TokenKind::False,
             "if" => TokenKind::If,
@@ -169,7 +203,13 @@ impl Lexer {
         Ok(Token::with_span(kind, line, column, start_byte, len))
     }
 
-    fn read_number(&mut self, first: char, line: usize, column: usize, byte_offset: usize) -> Result<Token> {
+    fn read_number(
+        &mut self,
+        first: char,
+        line: usize,
+        column: usize,
+        byte_offset: usize,
+    ) -> Result<Token> {
         let mut number = first.to_string();
         let mut is_float = false;
         let start_byte = byte_offset;
@@ -192,18 +232,24 @@ impl Lexer {
         }
         let len = self.byte_offset - start_byte;
 
-        let value: f64 = number
-            .parse()
-            .map_err(|_| EnglingError::lex(
+        let value: f64 = number.parse().map_err(|_| {
+            EnglingError::lex(
                 line,
                 column,
                 format!("Invalid number '{number}'"),
                 self.source.clone(),
                 start_byte,
                 len.max(1),
-            ))?;
+            )
+        })?;
 
-        Ok(Token::with_span(TokenKind::Number(value), line, column, start_byte, len))
+        Ok(Token::with_span(
+            TokenKind::Number(value),
+            line,
+            column,
+            start_byte,
+            len,
+        ))
     }
 
     fn read_string(&mut self) -> Result<String> {

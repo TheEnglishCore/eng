@@ -13,11 +13,19 @@ struct CallFrame {
 /// `println!`; tests can swap it for a writer that captures output.
 pub type PrintFn = Box<dyn FnMut(&Value) + Send>;
 
+/// Function the VM calls for every `Ask` statement. Receives the already
+/// evaluated prompt string and must return the line the user typed (with
+/// the trailing newline stripped). Defaults to reading from stdin via
+/// `std::io::stdin().read_line`; tests can swap it for a closure that
+/// returns canned input.
+pub type InputFn = Box<dyn FnMut(&str) -> Result<String> + Send>;
+
 pub struct VM {
     stack: Vec<Value>,
     scopes: ScopeStack,
     frames: Vec<CallFrame>,
     print_fn: PrintFn,
+    input_fn: InputFn,
 }
 
 impl Default for VM {
@@ -32,16 +40,25 @@ impl VM {
     }
 
     pub fn with_printer(print_fn: PrintFn) -> Self {
+        Self::with_printer_and_input(print_fn, default_input_reader())
+    }
+
+    pub fn with_printer_and_input(print_fn: PrintFn, input_fn: InputFn) -> Self {
         Self {
             stack: Vec::new(),
             scopes: ScopeStack::new(),
             frames: Vec::new(),
             print_fn,
+            input_fn,
         }
     }
 
     pub fn set_printer(&mut self, print_fn: PrintFn) {
         self.print_fn = print_fn;
+    }
+
+    pub fn set_input_reader(&mut self, input_fn: InputFn) {
+        self.input_fn = input_fn;
     }
 
     pub fn scopes_mut(&mut self) -> &mut ScopeStack {
@@ -134,6 +151,13 @@ impl VM {
                 let value = self.stack.pop().unwrap();
                 (self.print_fn)(&value);
             }
+            Instruction::Input(name) => {
+                let prompt = self.stack.pop().unwrap();
+                let prompt_str = prompt.to_string();
+                let line = (self.input_fn)(&prompt_str)?;
+                let trimmed = line.trim_end_matches(['\r', '\n']).to_string();
+                self.scopes.set(name, Value::String(trimmed));
+            }
             Instruction::Pop => {
                 self.stack.pop();
             }
@@ -143,9 +167,7 @@ impl VM {
             Instruction::Divide => self.binary_number(|a, b| a / b)?,
             Instruction::Modulo => self.binary_number(|a, b| a % b)?,
             Instruction::Equal => self.compare(Self::values_equal)?,
-            Instruction::NotEqual => {
-                self.compare(|a, b| !Self::values_equal(a, b))?
-            }
+            Instruction::NotEqual => self.compare(|a, b| !Self::values_equal(a, b))?,
             Instruction::Greater => self.compare_numbers(|a, b| a > b)?,
             Instruction::Less => self.compare_numbers(|a, b| a < b)?,
             Instruction::GreaterEqual => self.compare_numbers(|a, b| a >= b)?,
@@ -168,10 +190,9 @@ impl VM {
                 }
                 args.reverse();
 
-                let func_val = self
-                    .scopes
-                    .get(&name)
-                    .ok_or_else(|| EnglingError::runtime(format!("Function '{name}' is not defined")))?;
+                let func_val = self.scopes.get(&name).ok_or_else(|| {
+                    EnglingError::runtime(format!("Function '{name}' is not defined"))
+                })?;
 
                 let Value::Function(func) = func_val else {
                     return Err(EnglingError::runtime(format!("'{name}' is not a function")));
@@ -206,10 +227,7 @@ impl VM {
             }
             Instruction::ListPush(name) => {
                 let value = self.stack.pop().unwrap();
-                let mut list = self
-                    .scopes
-                    .get(&name)
-                    .unwrap_or(Value::List(Vec::new()));
+                let mut list = self.scopes.get(&name).unwrap_or(Value::List(Vec::new()));
                 if let Value::List(ref mut items) = list {
                     items.push(value);
                     self.scopes.set(name, list);
@@ -244,10 +262,9 @@ impl VM {
                     Value::Number(n) => n as usize,
                     _ => return Err(EnglingError::runtime("List index must be a number")),
                 };
-                let mut list = self
-                    .scopes
-                    .get(&name)
-                    .ok_or_else(|| EnglingError::runtime(format!("List '{name}' is not defined")))?;
+                let mut list = self.scopes.get(&name).ok_or_else(|| {
+                    EnglingError::runtime(format!("List '{name}' is not defined"))
+                })?;
                 if let Value::List(ref mut items) = list {
                     if index >= items.len() {
                         return Err(EnglingError::runtime(format!(
@@ -263,8 +280,7 @@ impl VM {
             Instruction::ListLength => {
                 let list_val = self.stack.pop().unwrap();
                 if let Value::List(items) = list_val {
-                    self.stack
-                        .push(Value::Number(items.len() as f64));
+                    self.stack.push(Value::Number(items.len() as f64));
                 } else {
                     return Err(EnglingError::runtime("Expected a list"));
                 }
@@ -338,10 +354,26 @@ impl VM {
     fn logical(&mut self, op: fn(bool, bool) -> bool) {
         let right = self.stack.pop().unwrap();
         let left = self.stack.pop().unwrap();
-        self.stack.push(Value::Boolean(op(
-            left.is_truthy(),
-            right.is_truthy(),
-        )));
+        self.stack
+            .push(Value::Boolean(op(left.is_truthy(), right.is_truthy())));
     }
 }
 
+/// Default `Input` reader: writes the prompt to stdout (without a
+/// trailing newline, so it feels like an interactive prompt) and reads a
+/// single line from stdin. We flush stdout because terminals do not
+/// line-buffer when piped.
+fn default_input_reader() -> InputFn {
+    use std::io::{self, Write};
+    Box::new(move |prompt: &str| {
+        print!("{prompt}");
+        io::stdout()
+            .flush()
+            .map_err(|e| EnglingError::runtime(format!("Could not flush prompt: {e}")))?;
+        let mut line = String::new();
+        io::stdin()
+            .read_line(&mut line)
+            .map_err(|e| EnglingError::runtime(format!("Could not read input: {e}")))?;
+        Ok(line)
+    })
+}

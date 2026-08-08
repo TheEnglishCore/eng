@@ -11,6 +11,10 @@ pub enum TokenKind {
     Print,
     Show,
     Display,
+    Ask,
+    Put,
+    It,
+    In,
 
     // Literals / booleans
     True,
@@ -120,7 +124,13 @@ impl Token {
         }
     }
 
-    pub fn with_span(kind: TokenKind, line: usize, column: usize, byte_offset: usize, byte_len: usize) -> Self {
+    pub fn with_span(
+        kind: TokenKind,
+        line: usize,
+        column: usize,
+        byte_offset: usize,
+        byte_len: usize,
+    ) -> Self {
         Self {
             kind,
             line,

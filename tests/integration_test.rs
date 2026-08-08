@@ -532,6 +532,9 @@ fn all_examples_directory_parses() {
             if fname.starts_with("24_") || fname.starts_with("25_") {
                 continue; // UI feature
             }
+            if fname.starts_with("27_") {
+                continue; // reads from stdin; would block the test harness
+            }
             if fname == "math_helpers.eng" {
                 continue; // module file, loaded via import
             }
@@ -559,8 +562,14 @@ fn all_examples_directory_parses() {
 fn repl_block_depth_tracker() {
     // The REPL should not submit a program until all opened blocks close.
     // We test the public helper that powers that logic.
-    assert_eq!(engling::repl::block_depth("If x, then\n  Print 1.\nEnd."), 0);
-    assert_eq!(engling::repl::block_depth("Repeat 3 times\n  Print 1.\nEnd."), 0);
+    assert_eq!(
+        engling::repl::block_depth("If x, then\n  Print 1.\nEnd."),
+        0
+    );
+    assert_eq!(
+        engling::repl::block_depth("Repeat 3 times\n  Print 1.\nEnd."),
+        0
+    );
     assert_eq!(engling::repl::block_depth("While x\n  Print 1.\nEnd."), 0);
     assert_eq!(
         engling::repl::block_depth("If x, then\n  Print 1.\nEnd.\nWhile y\n  Print 2.\nEnd."),
@@ -574,4 +583,132 @@ fn repl_block_depth_tracker() {
         engling::repl::block_depth("# if this is a comment\nPrint \"if then\"."),
         0
     );
+}
+
+/// Run a source string with a canned input reader that returns the next
+/// entry of `inputs` for every `Ask` (with the trailing newline the
+/// default `read_line` would leave attached), and capture what was printed.
+fn run_with_input(source: &str, inputs: &[&str]) -> Result<Vec<String>, EnglingError> {
+    let output: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let prompts: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let out_clone = Arc::clone(&output);
+    let prompts_clone = Arc::clone(&prompts);
+    let inputs: Vec<String> = inputs.iter().map(|s| s.to_string()).collect();
+    let input_count = inputs.len();
+    {
+        let mut iter = inputs.into_iter();
+        let printer = Box::new(move |v: &engling::value::Value| {
+            out_clone.lock().unwrap().push(v.to_string());
+        });
+        let reader = Box::new(move |prompt: &str| -> engling::error::Result<String> {
+            prompts_clone.lock().unwrap().push(prompt.to_string());
+            Ok(iter.next().unwrap_or_default() + "\n")
+        });
+        let mut vm = VM::with_printer_and_input(printer, reader);
+        runtime::execute(source.to_string(), &mut vm)?;
+    }
+    let captured_prompts = Arc::try_unwrap(prompts)
+        .ok()
+        .expect("prompts Arc captured by more than one reference")
+        .into_inner()
+        .unwrap();
+    assert_eq!(
+        captured_prompts.len(),
+        input_count,
+        "expected one captured prompt per supplied input line"
+    );
+    match Arc::try_unwrap(output) {
+        Ok(mutex) => Ok(mutex.into_inner().unwrap()),
+        Err(_) => panic!("print callback captured multiple Arc references"),
+    }
+}
+
+#[test]
+fn ask_stores_into_variable() {
+    let src = "
+        Ask \"Name: \" and put it in name.
+        Print \"Hi, \" plus name plus \".\".
+    ";
+    let out = run_with_input(src, &["Ada"]).unwrap();
+    assert_lines(out, &["Hi, Ada."]);
+}
+
+#[test]
+fn ask_strips_trailing_newline() {
+    // run_with_input always appends a newline (mimicking read_line). The
+    // stored value should not retain it.
+    let src = "
+        Ask \"x: \" and put it in x.
+        Let y be x plus \"!\".
+        Print y.
+    ";
+    let out = run_with_input(src, &["hello"]).unwrap();
+    assert_lines(out, &["hello!"]);
+}
+
+#[test]
+fn ask_passes_prompt_to_reader() {
+    let output: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let prompts: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let out_clone = Arc::clone(&output);
+    let prompts_clone = Arc::clone(&prompts);
+    {
+        let printer = Box::new(move |v: &engling::value::Value| {
+            out_clone.lock().unwrap().push(v.to_string());
+        });
+        let reader = Box::new(move |prompt: &str| -> engling::error::Result<String> {
+            prompts_clone.lock().unwrap().push(prompt.to_string());
+            Ok(String::from("ok\n"))
+        });
+        let mut vm = VM::with_printer_and_input(printer, reader);
+        runtime::execute(
+            "Ask \"Username: \" and put it in name.\nPrint name.\n".to_string(),
+            &mut vm,
+        )
+        .unwrap();
+    }
+    let captured = prompts.lock().unwrap().clone();
+    assert_eq!(captured, vec!["Username: ".to_string()]);
+    assert_lines(
+        Arc::try_unwrap(output).unwrap().into_inner().unwrap(),
+        &["ok"],
+    );
+}
+
+#[test]
+fn ask_with_numeric_arithmetic() {
+    // Demonstrates that a number entered via Ask is treated as a string;
+    // numeric parsing happens at the user level. Here we just verify the
+    // stored value participates in concatenation.
+    let src = "
+        Ask \"Age: \" and put it in age.
+        Print \"You said \" plus age plus \".\".
+    ";
+    let out = run_with_input(src, &["21"]).unwrap();
+    assert_lines(out, &["You said 21."]);
+}
+
+#[test]
+fn ask_uses_example_file() {
+    // Run the shipped example to make sure it parses and runs end-to-end
+    // with canned stdin input.
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("examples")
+        .join("27_input.eng");
+    let output: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let out_clone = Arc::clone(&output);
+    let inputs = vec![String::from("Ada\n"), String::from("blue\n")];
+    {
+        let mut iter = inputs.into_iter();
+        let printer = Box::new(move |v: &engling::value::Value| {
+            out_clone.lock().unwrap().push(v.to_string());
+        });
+        let reader = Box::new(move |_prompt: &str| -> engling::error::Result<String> {
+            Ok(iter.next().unwrap_or_default())
+        });
+        let mut vm = VM::with_printer_and_input(printer, reader);
+        runtime::execute_file(&path, &mut vm).unwrap();
+    }
+    let captured = Arc::try_unwrap(output).unwrap().into_inner().unwrap();
+    assert_lines(captured, &["Hello, Ada!", "Ada likes blue."]);
 }

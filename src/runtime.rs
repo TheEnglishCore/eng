@@ -37,6 +37,14 @@ impl ModuleLoader {
                 }
             }
         }
+        // Resolution order: local → ENGLING_PATH → installed packages.
+        // A local module always wins, so users can shadow an installed
+        // package by placing `colors.eng` next to their program.
+        if let Some(p) = crate::package::PackageStore::user_default().resolve_module(name) {
+            if p.exists() {
+                return p;
+            }
+        }
         local
     }
 
@@ -82,11 +90,7 @@ impl ModuleLoader {
     }
 }
 
-pub fn run_source_with_loader(
-    source: &str,
-    vm: &mut VM,
-    loader: &mut ModuleLoader,
-) -> Result<()> {
+pub fn run_source_with_loader(source: &str, vm: &mut VM, loader: &mut ModuleLoader) -> Result<()> {
     let mut lexer = Lexer::new(source.to_string());
     let tokens = lexer.tokenize()?;
     let mut parser = Parser::with_source(tokens, source.to_string());
@@ -151,11 +155,9 @@ pub fn execute(source: String, vm: &mut VM) -> Result<()> {
 }
 
 pub fn execute_file(path: &Path, vm: &mut VM) -> Result<()> {
-    let source = std::fs::read_to_string(path).map_err(|e| {
-        EnglingError::runtime(format!("Could not read {}: {e}", path.display()))
-    })?;
+    let source = std::fs::read_to_string(path)
+        .map_err(|e| EnglingError::runtime(format!("Could not read {}: {e}", path.display())))?;
     let base_dir = path.parent().unwrap_or(Path::new(".")).to_path_buf();
     let mut loader = ModuleLoader::new(base_dir);
     run_source_with_loader(&source, vm, &mut loader)
 }
-

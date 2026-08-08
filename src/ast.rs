@@ -16,6 +16,10 @@ pub enum Statement {
     Print {
         expression: Expression,
     },
+    Input {
+        prompt: Expression,
+        variable: String,
+    },
     If {
         condition: Expression,
         then_block: Vec<Statement>,

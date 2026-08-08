@@ -18,9 +18,18 @@ pub struct WindowState {
 }
 
 pub enum WidgetState {
-    Button { label: String },
-    Label { label: String, name: String, text: String },
-    TextField { label: String, text: String },
+    Button {
+        label: String,
+    },
+    Label {
+        label: String,
+        name: String,
+        text: String,
+    },
+    TextField {
+        label: String,
+        text: String,
+    },
 }
 
 static UI_STATE: Mutex<Option<UiState>> = Mutex::new(None);
@@ -61,9 +70,9 @@ fn clone_vm(vm: &VM) -> VM {
 
 pub fn process_ui_statement(stmt: &Statement) -> Result<()> {
     let mut state = UI_STATE.lock().unwrap();
-    let state = state.as_mut().ok_or_else(|| {
-        EnglingError::runtime("UI not initialized")
-    })?;
+    let state = state
+        .as_mut()
+        .ok_or_else(|| EnglingError::runtime("UI not initialized"))?;
 
     match stmt {
         Statement::WindowDecl { name, title } => {
@@ -114,12 +123,15 @@ pub fn process_ui_statement(stmt: &Statement) -> Result<()> {
 
 pub fn update_label_text(name: &str, text: String) -> Result<()> {
     let mut state = UI_STATE.lock().unwrap();
-    let state = state.as_mut().ok_or_else(|| {
-        EnglingError::runtime("UI not initialized")
-    })?;
+    let state = state
+        .as_mut()
+        .ok_or_else(|| EnglingError::runtime("UI not initialized"))?;
     for win in state.windows.values_mut() {
         for widget in win.widgets.iter_mut() {
-            if let WidgetState::Label { name: n, text: t, .. } = widget {
+            if let WidgetState::Label {
+                name: n, text: t, ..
+            } = widget
+            {
                 if n == name {
                     *t = text;
                 }
@@ -130,19 +142,25 @@ pub fn update_label_text(name: &str, text: String) -> Result<()> {
 }
 
 pub fn run_event_loop() -> Result<()> {
-    let state = UI_STATE.lock().unwrap().take().ok_or_else(|| {
-        EnglingError::runtime("No UI windows to display")
-    })?;
+    let state = UI_STATE
+        .lock()
+        .unwrap()
+        .take()
+        .ok_or_else(|| EnglingError::runtime("No UI windows to display"))?;
 
-    let window_name = state.windows.keys().next().cloned().ok_or_else(|| {
-        EnglingError::runtime("No windows defined")
-    })?;
+    let window_name = state
+        .windows
+        .keys()
+        .next()
+        .cloned()
+        .ok_or_else(|| EnglingError::runtime("No windows defined"))?;
 
     let window_state = state.windows.get(&window_name).unwrap().clone();
     let handlers = state.handlers.clone();
-    let vm = SHARED_VM.lock().unwrap().clone().ok_or_else(|| {
-        EnglingError::runtime("UI VM not registered; call register_vm() first")
-    })?;
+    let vm =
+        SHARED_VM.lock().unwrap().clone().ok_or_else(|| {
+            EnglingError::runtime("UI VM not registered; call register_vm() first")
+        })?;
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()

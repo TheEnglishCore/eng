@@ -1,5 +1,5 @@
 use crate::ast::*;
-use crate::error::{EnglingError, Result, line_col_to_offset};
+use crate::error::{line_col_to_offset, EnglingError, Result};
 use crate::token::{Token, TokenKind};
 
 pub struct Parser {
@@ -38,14 +38,7 @@ impl Parser {
 
     fn err_at(&self, tok: &Token, message: impl Into<String>) -> EnglingError {
         let (off, len) = self.span_for_token(tok);
-        EnglingError::parse_with_span(
-            tok.line,
-            tok.column,
-            message,
-            self.source.clone(),
-            off,
-            len,
-        )
+        EnglingError::parse_with_span(tok.line, tok.column, message, self.source.clone(), off, len)
     }
 
     fn err_pos(&self, line: usize, column: usize, message: impl Into<String>) -> EnglingError {
@@ -66,6 +59,7 @@ impl Parser {
             TokenKind::Let => self.variable_decl(),
             TokenKind::Set => self.assignment(),
             TokenKind::Print => self.print_stmt(),
+            TokenKind::Ask => self.ask_stmt(),
             TokenKind::If => self.if_stmt(),
             TokenKind::Repeat => self.repeat_stmt(),
             TokenKind::While => self.while_stmt(),
@@ -185,6 +179,32 @@ impl Parser {
         let expression = self.expression()?;
         self.expect(TokenKind::Period)?;
         Ok(Statement::Print { expression })
+    }
+
+    /// `Ask <prompt-expression> and put it in <identifier>.`
+    ///
+    /// The prompt is any expression (most commonly a string literal), and
+    /// the variable name is the identifier where the read line is stored.
+    /// We require the literal bridge `and put it in` so the statement reads
+    /// like a sentence in plain English; allowing any expression there
+    /// would silently mis-parse.
+    ///
+    /// Note: the prompt is parsed with `comparison()` (not the full
+    /// `expression()`), because `expression()` greedily treats `and` /
+    /// `or` as boolean operators and would swallow the bridge words
+    /// (`Ask "x: " and put it in y.` would parse the prompt as
+    /// `"x: " and put`). This matches how `read_arg_list` deliberately
+    /// stops at `and`/`or` to keep them as separators.
+    fn ask_stmt(&mut self) -> Result<Statement> {
+        self.advance(); // Ask
+        let prompt = self.comparison()?;
+        self.expect(TokenKind::And)?;
+        self.expect(TokenKind::Put)?;
+        self.expect(TokenKind::It)?;
+        self.expect(TokenKind::In)?;
+        let variable = self.read_identifier()?;
+        self.expect(TokenKind::Period)?;
+        Ok(Statement::Input { prompt, variable })
     }
 
     fn if_stmt(&mut self) -> Result<Statement> {
@@ -607,9 +627,7 @@ impl Parser {
         if self.check(&TokenKind::The) {
             // Peek ahead to see if this is `the length of IDENT`.
             let next = self.current + 1;
-            if next < self.tokens.len()
-                && matches!(self.tokens[next].kind, TokenKind::Length)
-            {
+            if next < self.tokens.len() && matches!(self.tokens[next].kind, TokenKind::Length) {
                 return self.list_length_expr();
             }
         }
@@ -667,6 +685,9 @@ impl Parser {
             TokenKind::And => Ok(Expression::Variable("and".to_string())),
             TokenKind::Is => Ok(Expression::Variable("is".to_string())),
             TokenKind::Be => Ok(Expression::Variable("be".to_string())),
+            TokenKind::Put => Ok(Expression::Variable("put".to_string())),
+            TokenKind::It => Ok(Expression::Variable("it".to_string())),
+            TokenKind::In => Ok(Expression::Variable("in".to_string())),
             kind => Err(self.err_at(self.previous(), format!("Invalid expression: {kind:?}"))),
         }
     }
@@ -700,10 +721,7 @@ impl Parser {
                     self.advance();
                 }
                 if n == 0 {
-                    return Err(self.err_at(
-                        self.previous(),
-                        "List indices start at 1, not 0",
-                    ));
+                    return Err(self.err_at(self.previous(), "List indices start at 1, not 0"));
                 }
                 n - 1
             }
@@ -735,6 +753,9 @@ impl Parser {
             TokenKind::And => "and".to_string(),
             TokenKind::Is => "is".to_string(),
             TokenKind::Be => "be".to_string(),
+            TokenKind::Put => "put".to_string(),
+            TokenKind::It => "it".to_string(),
+            TokenKind::In => "in".to_string(),
             kind => {
                 return Err(self.err_at(
                     self.previous(),
@@ -881,7 +902,10 @@ impl Parser {
                 WidgetKind::TextField
             }
             kind => {
-                return Err(self.err_at(self.previous(), format!("Expected widget type, got {kind:?}")));
+                return Err(self.err_at(
+                    self.previous(),
+                    format!("Expected widget type, got {kind:?}"),
+                ));
             }
         };
         self.expect(TokenKind::To)?;
