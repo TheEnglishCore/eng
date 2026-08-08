@@ -1,0 +1,12 @@
+input: .
+url: https://theenglishcore.github.io/eng/
+
+branding:
+  title: ENG
+  label: Docs
+  logo: static/eng.png
+  favicon: static/eng.png
+
+links:
+  - text: GitHub
+    link: https://github.com/TheEnglishCore/eng
