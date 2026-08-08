@@ -1,27 +1,52 @@
 # Strings
 
-## Overview
+Strings are double-quoted text values.
 
-This page documents the **Strings** component or language feature in Engling.
+## Creating strings
 
-## Purpose
-
-Describe what this feature does, when to use it, and any implementation notes relevant to the current interpreter.
-
-## Examples
-
-```eng
-# Add examples for strings here.
+```engling
+Let language be "ENG".
+Let message be "Programming in plain English.".
 ```
 
-## Best Practices
+## Printing
 
-- Keep code readable.
-- Prefer descriptive identifiers.
-- Follow the Engling style guide.
+```engling
+Print "Hello, world.".
+```
 
-## Common Pitfalls
+## Concatenation
 
-- Incorrect syntax.
-- Missing statement terminators.
-- Undefined identifiers.
+Use `plus`:
+
+```engling
+Let first be "Hello, ".
+Let second be "world.".
+Let message be first plus second.
+Print message.
+```
+
+The VM only permits string + string or number + number for `plus`.
+
+This will fail:
+
+```engling
+Let text be "value".
+Print text plus 5.
+```
+
+because the operands have incompatible types.
+
+## Quotes
+
+String literals use double quotes. The current lexer treats a newline before the closing quote as an unterminated string error.
+
+## Empty strings
+
+An empty string is valid:
+
+```engling
+Let message be "".
+```
+
+It is falsey when used as a condition.

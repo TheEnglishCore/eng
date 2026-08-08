@@ -1,27 +1,41 @@
-# Repl
+# REPL
 
-## Overview
+Running `eng` without a subcommand starts the interactive Read-Eval-Print Loop.
 
-This page documents the **Repl** component or language feature in Engling.
-
-## Purpose
-
-Describe what this feature does, when to use it, and any implementation notes relevant to the current interpreter.
-
-## Examples
-
-```eng
-# Add examples for repl here.
+```bash
+eng
 ```
 
-## Best Practices
+When developing from source:
 
-- Keep code readable.
-- Prefer descriptive identifiers.
-- Follow the Engling style guide.
+```bash
+cargo run
+```
 
-## Common Pitfalls
+The REPL uses the Rust `rustyline` crate for interactive input.
 
-- Incorrect syntax.
-- Missing statement terminators.
-- Undefined identifiers.
+## What to try
+
+Simple expressions/statements can be entered interactively:
+
+```engling
+Let x be 5.
+Print x.
+```
+
+You can also experiment with functions and arithmetic.
+
+## When to use the REPL
+
+The REPL is useful for:
+
+- checking syntax quickly
+- testing arithmetic
+- experimenting with values
+- trying a small function before putting it in a `.eng` file
+
+For multi-line programs, a `.eng` file is generally easier because block constructs require their complete `End.` terminator.
+
+## REPL vs files
+
+File execution uses the module loader with the directory of the source file as the module base directory. The REPL executes source through the runtime using the current directory as its module base.

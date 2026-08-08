@@ -1,134 +1,77 @@
----
-label: Home
-icon: home
----
+# ENG Documentation
 
-# ENG
+**ENG** (the executable is `eng`) is a small programming language whose syntax is written as structured English.
 
-A programming language that reads like structured English.
+> Programming in plain English — with a fixed grammar that the interpreter can parse deterministically.
 
-!!!primary
-**ENG** is an interpreted programming language designed to be readable, approachable, and expressive. It combines familiar English-like syntax with a deterministic grammar, making programs easy to write and understand.
-!!!
+This documentation describes the syntax implemented by the current Engling v0.1.0 interpreter.
 
-## Why ENG?
+## Quick start
 
--  Readable English-inspired syntax
--  Bytecode interpreter written in Rust
--  Fast startup and lightweight runtime
--  Modular architecture
--  Cross-platform
--  Beginner-friendly
-
-## Hello, World
-
-```eng
-Print "Hello, world.".
-```
-
-Run it with:
+Run a source file:
 
 ```bash
-eng run hello.eng
+cargo run -- run examples/01_hello.eng
 ```
 
----
+Or, after building the binary:
 
-## Getting Started
+```bash
+eng run program.eng
+```
 
-If you're new to ENG, follow these guides in order:
+Start the REPL by running `eng` without a subcommand:
 
-1. Installation
-2. Your First Program
-3. Variables
-4. Expressions
-5. Conditions
-6. Loops
-7. Functions
-8. Modules
+```bash
+eng
+```
 
----
-
-## Language Features
-
-- Variables
-- Numbers
-- Strings
-- Booleans
-- Lists
-- Functions
-- Modules
-- Input & Output
-- Error Handling
-- Standard Library *(coming soon)*
-
----
-
-## Example
+A minimal program:
 
 ```eng
-Let name be "World".
-
-Define a function called greet that takes person.
-
-    Print "Hello, " plus person.
-
-End.
-
-Run greet with name.
+Let greeting be "Hello, world.".
+Print greeting.
 ```
 
----
+Every statement ends with a period (`.`). Blocks such as `If`, `Repeat`, `While`, and function bodies end with `End.`.
 
-## Project Architecture
+## What ENG supports
 
-```text
-Source (.eng)
-      │
-      ▼
- Lexer
-      │
-      ▼
- Parser
-      │
-      ▼
- AST
-      │
-      ▼
- Compiler
-      │
-      ▼
- Bytecode
-      │
-      ▼
- Virtual Machine
-```
+- Variables and assignment
+- Numbers, strings, booleans, lists, functions, and `nothing`
+- Arithmetic and comparisons
+- Boolean `and` / `or`
+- `If` / `Otherwise`
+- `Repeat` and `While`
+- Functions with parameters and return expressions
+- Lists with ordinal indexing
+- Modules and selective imports
+- An optional GUI feature using `egui`/`eframe`
+- A bytecode compiler and stack-based virtual machine
 
----
+## Documentation map
 
-## Documentation
+- [Getting Started](getting-started.md)
+- [CLI](cli.md)
+- [Syntax](syntax.md)
+- [Variables](variables.md)
+- [Data Types](data-types.md)
+- [Operators](operators.md)
+- [Conditions](conditions.md)
+- [Loops](loops.md)
+- [Functions](functions.md)
+- [Lists](lists.md)
+- [Strings](strings.md)
+- [Modules and Imports](modules.md)
+- [REPL](repl.md)
+- [Errors and Debugging](errors.md)
+- [GUI](gui.md)
+- [Project Structure](project-structure.md)
+- [Architecture](architecture.md)
+- [Grammar Reference](grammar.md)
+- [Examples](examples.md)
+- [FAQ](faq.md)
 
-Browse the documentation to learn every aspect of the language:
+## Version note
 
-- Getting Started
-- Language Reference
-- Examples
-- CLI Reference
-- Standard Library
-- Package Manager *(planned)*
-- Contributing
-
----
-
-## Community
-
-- Report bugs on GitHub
-- Suggest new language features
-- Contribute to the project
-- Improve the documentation
-
----
-
-!!!success
-Welcome to **ENG**! Whether you're writing your first program or contributing to the interpreter, this documentation is the best place to begin.
-!!!
+The syntax documented here is based on the source tree supplied with this documentation. ENG is intentionally strict: it accepts known sentence templates rather than arbitrary English prose.
